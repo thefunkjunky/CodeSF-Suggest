@@ -18,7 +18,7 @@ def main():
 	print("Configuring project variables configuration file.")
 	db_name = input('Please enter SQL database name.> ')
 	username = input('Please enter db admin username.> ')
-	password = getpass.getpass('Enter admin password:> ')
+	password = getpass.getpass('Enter db admin password:> ')
 	host = input("Please enter database host server (leave blank for default localhost) > ")
 	port = input("Please enter port number (leave blank for default port 5432.> ")
 	if host == "": host = "127.0.0.1"
