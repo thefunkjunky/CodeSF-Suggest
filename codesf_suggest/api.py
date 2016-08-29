@@ -11,6 +11,66 @@ from .main import app
 from .database import session
 
 
+# JSON scheme validators
+
+user_POST_schema = {
+    "type": "object",
+    "properties": {
+        "name": {"type": "string"},
+        "email": {"type": "string"},
+        "password": {"type": "string"}
+        "organization": {"type": "string"}
+        "position": {"type": "string"}
+        "description": {"type": "string"}
+        "image": {"type": "string"}
+    },
+    "required": ["name", "email", "password"]
+}
+
+post_POST_schema = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"}
+        "short_description": {"type": "string"}
+        "long_description": {"type": "string"}
+        "organization": {"type": "string"}
+        "image": {"type": "string"}
+        "admin_id": {"type": "number"}
+        "slack": {"type": "string"}
+    },
+    "required": ["title", "admin_id", "short_description"]
+}
+
+user_PUT_schema = {
+    "type": "object",
+    "properties": {
+        "id": {"type": "number"}
+        "name": {"type": "string"},
+        "email": {"type": "string"},
+        "password": {"type": "string"}
+        "organization": {"type": "string"}
+        "position": {"type": "string"}
+        "description": {"type": "string"}
+        "image": {"type": "string"}
+    },
+    "required": ["id"]
+}
+
+post_PUT_schema = {
+    "type": "object",
+    "properties": {
+        "id": {"type": "number"}
+        "title": {"type": "string"}
+        "short_description": {"type": "string"}
+        "long_description": {"type": "string"}
+        "organization": {"type": "string"}
+        "image": {"type": "string"}
+        "admin_id": {"type": "number"}
+        "slack": {"type": "string"}
+    },
+    "required": ["id"]
+}
+
 ### Define the API endpoints
 ############################
 # GET endpoints
@@ -87,5 +147,53 @@ def user_get(user_id):
     data = json.dumps(user.as_dictionary(), default=json_serial)
     return Response(data, 200, mimetype="application/json")
 
+############################
+# POST endpoints
+############################
+@app.route("/api/posts", methods=["POST"])
+@decorators.accept("application/json")
+@decorators.require("application/json")
+def posts_post():
+    """Adds a new post"""
+    data = request.json
 
+    # Validate submitted header data, as json, against schema
+    try:
+        validate(data, post_POST_schema)
+    except ValidationError as error:
+        data = {"message": error.message}
+        return Response(json.dumps(data), 422, mimetype="application/json")
 
+    post=models.Post(**data)
+    session.add(post)
+    session.commit()
+
+    # Return a 201 Created, containing the election as JSON and with the 
+    # Location header set to the location of the election
+    data = json.dumps(post.as_dictionary(), default=json_serial)
+    headers = {"Location": url_for("post_get", post_id=post.id)}
+    return Response(data, 201, headers=headers, mimetype="application/json")
+
+@app.route("/api/users", methods=["POST"])
+@decorators.accept("application/json")
+@decorators.require("application/json")
+def users_post():
+    """Adds a new post"""
+    data = request.json
+
+    # Validate submitted header data, as json, against schema
+    try:
+        validate(data, user_POST_schema)
+    except ValidationError as error:
+        data = {"message": error.message}
+        return Response(json.dumps(data), 422, mimetype="application/json")
+
+    user=models.User(**data)
+    session.add(user)
+    session.commit()
+
+    # Return a 201 Created, containing the election as JSON and with the 
+    # Location header set to the location of the election
+    data = json.dumps(user.as_dictionary(), default=json_serial)
+    headers = {"Location": url_for("user_get", user_id=user.id)}
+    return Response(data, 201, headers=headers, mimetype="application/json")

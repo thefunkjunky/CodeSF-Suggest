@@ -14,6 +14,7 @@ class User(Base):
     """ Base User Class """
     __tablename__ = "user"
     id = Column(Integer, primary_key=True)
+    password = Column(Text)
     name = Column(Text, nullable=False)
     email = Column(Text, nullable=False)
     organization = Column(Text)
@@ -30,6 +31,7 @@ class User(Base):
     def as_dictionary(self):
         user_dict = {
         "id": self.id,
+        "password": self.password,
         "name": self.name,
         "email": self.email,
         "organization": self.organization,
@@ -52,6 +54,7 @@ class Post(Base):
     image = Column(Text)
     start_date = Column(DateTime, default=datetime.datetime.utcnow())
     last_modified = Column(DateTime, onupdate=datetime.datetime.utcnow())
+    slack = Column(Text)
 
 
     # Foreign relationships
@@ -69,6 +72,7 @@ class Post(Base):
         "start_date": self.start_date,
         "last_modified": self.last_modified,
         "admin_id": self.admin_id,
+        "slack": self.slack,
         }
 
 
