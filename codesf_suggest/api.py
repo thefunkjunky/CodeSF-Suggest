@@ -71,6 +71,13 @@ post_PUT_schema = {
     "required": ["id"]
 }
 
+DELETE_schema = {
+    "type": "object",
+    "properties": {
+        "id": {"type": "number"}
+    },
+    "required": ["id"]
+}
 ### Define the API endpoints
 ############################
 # GET endpoints
@@ -164,12 +171,12 @@ def posts_post():
         data = {"message": error.message}
         return Response(json.dumps(data), 422, mimetype="application/json")
 
-    post=models.Post(**data)
+    post = models.Post(**data)
     session.add(post)
     session.commit()
 
-    # Return a 201 Created, containing the election as JSON and with the 
-    # Location header set to the location of the election
+    # Return a 201 Created, containing the post as JSON and with the 
+    # Location header set to the location of the post
     data = json.dumps(post.as_dictionary(), default=json_serial)
     headers = {"Location": url_for("post_get", post_id=post.id)}
     return Response(data, 201, headers=headers, mimetype="application/json")
@@ -178,7 +185,7 @@ def posts_post():
 @decorators.accept("application/json")
 @decorators.require("application/json")
 def users_post():
-    """Adds a new post"""
+    """Adds a new user"""
     data = request.json
 
     # Validate submitted header data, as json, against schema
@@ -188,12 +195,145 @@ def users_post():
         data = {"message": error.message}
         return Response(json.dumps(data), 422, mimetype="application/json")
 
-    user=models.User(**data)
+    user = models.User.filter(models.User.email == data["email"]).first()
+    if user:
+        message = "User with email {} already exists.".format(user.email)
+        data = json.dumps({"message": message})
+        return Response(data, 403, mimetype="application/json")
+
+    user = models.User(**data)
     session.add(user)
     session.commit()
 
-    # Return a 201 Created, containing the election as JSON and with the 
-    # Location header set to the location of the election
+    # Return a 201 Created, containing the user as JSON and with the 
+    # Location header set to the location of the user
     data = json.dumps(user.as_dictionary(), default=json_serial)
     headers = {"Location": url_for("user_get", user_id=user.id)}
     return Response(data, 201, headers=headers, mimetype="application/json")
+
+############################
+# PUT endpoints
+############################
+@app.route("/api/posts/", methods=["PUT"])
+@decorators.accept("application/json")
+@decorators.require("application/json")
+def post_put():
+    """ Edits post """
+    data = request.json
+
+    # Validate submitted header data, as json, against schema
+    try:
+        validate(data, post_PUT_schema)
+    except ValidationError as error:
+        data = {"message": error.message}
+        return Response(json.dumps(data), 422, mimetype="application/json")
+
+    check_post_id(data["id"])
+
+    # Init post object with id=data["id"]
+    post = session.query(models.Post).get(data["id"])
+
+    # Update target post
+    data.pop("id", None)
+    for key, value in data.items():
+        setattr(post, key, value)
+    session.commit()
+
+    data = json.dumps(post.as_dictionary(), default=json_serial)
+    headers = {"Location": url_for("post_get", elect_id=post.id)}
+    return Response(data, 200, headers=headers, mimetype="application/json")
+
+@app.route("/api/users", methods=["PUT"])
+@decorators.accept("application/json")
+@decorators.require("application/json")
+def user_put():
+    """ Edits user """
+    data = request.json
+
+    # Validate submitted header data, as json, against schema
+    try:
+        validate(data, user_PUT_schema)
+    except ValidationError as error:
+        data = {"message": error.message}
+        return Response(json.dumps(data), 422, mimetype="application/json")
+
+    check_user_id(data["id"])
+
+    # Init user object with id=data["id"]
+    user = session.query(models.User).get(data["id"])
+
+    if data["email"] != user.email:
+        user_verify = models.Users.filter(model.Users.email == data["email"]).first()
+        if user_verify:
+            message = "User with email {} already exists.".format(
+                duplicate_user.id)
+            data = json.dumps({"message": message})
+            return Response(data, 403, mimetype="application/json")
+
+    # Update target user
+    data.pop("id", None)
+    for key, value in data.items():
+        setattr(user, key, value)
+    session.commit()
+
+    data = json.dumps(user.as_dictionary(), default=json_serial)
+    headers = {"Location": url_for("user_get", elect_id=user.id)}
+    return Response(data, 200, headers=headers, mimetype="application/json")
+
+############################
+# DELETE endpoints
+############################
+
+@app.route("/api/posts", methods=["DELETE"])
+@decorators.accept("application/json")
+@decorators.require("application/json")
+def post_delete():
+    """ Deletes post """
+    data = request.json
+
+    # Validate submitted header data, as json, against schema
+    try:
+        validate(data, DELETE_schema)
+    except ValidationError as error:
+        data = {"message": error.message}
+        return Response(json.dumps(data), 422, mimetype="application/json")
+
+    check_post_id(data["id"])
+
+    # Deletes post object with id=data["id"]
+    post = session.query(models.Post).get(data["id"])
+    session.delete(post)
+    session.commit()
+
+    message = "Deleted post id #{}".format(data["id"])
+    data = json.dumps({"message": message})
+    headers = {"Location": url_for("posts_get")}
+
+    return Response(data, 200, headers=headers, mimetype="application/json")
+
+@app.route("/api/users", methods=["DELETE"])
+@decorators.accept("application/json")
+@decorators.require("application/json")
+def user_delete():
+    """ Deletes user """
+    data = request.json
+
+    # Validate submitted header data, as json, against schema
+    try:
+        validate(data, DELETE_schema)
+    except ValidationError as error:
+        data = {"message": error.message}
+        return Response(json.dumps(data), 422, mimetype="application/json")
+
+    check_user_id(data["id"])
+
+    # Deletes user object with id=data["id"]
+    user = session.query(models.User).get(data["id"])
+    session.delete(user)
+    session.commit()
+
+    message = "Deleted user id #{}".format(data["id"])
+    data = json.dumps({"message": message})
+    headers = {"Location": url_for("users_get")}
+
+    return Response(data, 200, headers=headers, mimetype="application/json")
