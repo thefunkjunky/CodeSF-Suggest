@@ -7,7 +7,7 @@ Werkzeug
 itsdangerous
 jsonschema
 nose
-mysqlclient
+
 gcloud
 gunicorn
 functools32

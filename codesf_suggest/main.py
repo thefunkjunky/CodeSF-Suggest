@@ -2,7 +2,7 @@ from flask import Flask
 import os
 import sys
 
-sys.path.insert(0, 'libs')
+sys.path.insert(0, 'lib')
 app = Flask(__name__)
 config_path = os.environ.get("CONFIG_PATH", "codesf_suggest.config.DevelopmentConfig")
 print(config_path)

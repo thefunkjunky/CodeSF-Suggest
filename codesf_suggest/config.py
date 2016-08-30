@@ -14,11 +14,12 @@ class DevelopmentConfig(object):
         sys.exit()
 
     if os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/'):
-            DATABASE_URI = "mysql://{}:{}@localhost/{}?unix_socket=/cloudsql/{}:{}".format(
+            DATABASE_URI = "mysql+mysqldb://{}:{}@/{}?unix_socket=/cloudsql/{}:{}:{}".format(
                 cfg_params["user"],
                 cfg_params['password'], # Encodes weird passwords with spaces and whatnot for urls
                 cfg_params['dbname'],
                 cfg_params["cloudsql_project"],
+                cfg_params["cloud_region"],
                 cfg_params["cloudsql_instance"])
     else:
         DATABASE_URI = "mysql://{}:{}@{}:{}/{}".format(
