@@ -4,13 +4,14 @@ import datetime
 
 from flask import url_for
 from flask.json import jsonify
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Sequence, ForeignKey, Enum, 
+from flask_login import UserMixin
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Sequence, ForeignKey, Enum
 from sqlalchemy.orm import relationship, validates, column_property, backref
 
 
 from .database import Base, engine
 
-class User(Base):
+class User(Base, UserMixin):
     """ Base User Class """
     __tablename__ = "user"
     id = Column(Integer, primary_key=True)
@@ -26,7 +27,7 @@ class User(Base):
 
     # Foreign relationships
     posts = relationship("Post", backref="admin", cascade="all, delete-orphan")
-    volunteered_posts = relationship("Post", backref="user")
+    # volunteered_posts = relationship("Post", backref="user")
 
     def as_dictionary(self):
         user_dict = {
@@ -58,8 +59,8 @@ class Post(Base):
 
 
     # Foreign relationships
-    admin_id = Column(Integer, ForeignKey("User.id"))
-    volunteers = relationship("User")
+    admin_id = Column(Integer, ForeignKey("user.id"), nullable=False, default=1)
+    # volunteers = relationship("user")
 
     def as_dictionary(self):
         post_dict = {

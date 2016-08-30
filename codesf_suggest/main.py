@@ -1,8 +1,11 @@
 from flask import Flask
 import os
+import sys
 
+sys.path.insert(0, 'libs')
 app = Flask(__name__)
-config_path = os.environ.get("CONFIG_PATH", "tuneful.config.DevelopmentConfig")
+config_path = os.environ.get("CONFIG_PATH", "codesf_suggest.config.DevelopmentConfig")
+print(config_path)
 app.config.from_object(config_path)
 
 from . import api

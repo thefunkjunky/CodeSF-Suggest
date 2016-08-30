@@ -18,11 +18,11 @@ user_POST_schema = {
     "properties": {
         "name": {"type": "string"},
         "email": {"type": "string"},
-        "password": {"type": "string"}
-        "organization": {"type": "string"}
-        "position": {"type": "string"}
-        "description": {"type": "string"}
-        "image": {"type": "string"}
+        "password": {"type": "string"},
+        "organization": {"type": "string"},
+        "position": {"type": "string"},
+        "description": {"type": "string"},
+        "image": {"type": "string"},
     },
     "required": ["name", "email", "password"]
 }
@@ -30,13 +30,13 @@ user_POST_schema = {
 post_POST_schema = {
     "type": "object",
     "properties": {
-        "title": {"type": "string"}
-        "short_description": {"type": "string"}
-        "long_description": {"type": "string"}
-        "organization": {"type": "string"}
-        "image": {"type": "string"}
-        "admin_id": {"type": "number"}
-        "slack": {"type": "string"}
+        "title": {"type": "string"},
+        "short_description": {"type": "string"},
+        "long_description": {"type": "string"},
+        "organization": {"type": "string"},
+        "image": {"type": "string"},
+        "admin_id": {"type": "number"},
+        "slack": {"type": "string"},
     },
     "required": ["title", "admin_id", "short_description"]
 }
@@ -44,14 +44,14 @@ post_POST_schema = {
 user_PUT_schema = {
     "type": "object",
     "properties": {
-        "id": {"type": "number"}
+        "id": {"type": "number"},
         "name": {"type": "string"},
         "email": {"type": "string"},
-        "password": {"type": "string"}
-        "organization": {"type": "string"}
-        "position": {"type": "string"}
-        "description": {"type": "string"}
-        "image": {"type": "string"}
+        "password": {"type": "string"},
+        "organization": {"type": "string"},
+        "position": {"type": "string"},
+        "description": {"type": "string"},
+        "image": {"type": "string"},
     },
     "required": ["id"]
 }
@@ -59,14 +59,14 @@ user_PUT_schema = {
 post_PUT_schema = {
     "type": "object",
     "properties": {
-        "id": {"type": "number"}
-        "title": {"type": "string"}
-        "short_description": {"type": "string"}
-        "long_description": {"type": "string"}
-        "organization": {"type": "string"}
-        "image": {"type": "string"}
-        "admin_id": {"type": "number"}
-        "slack": {"type": "string"}
+        "id": {"type": "number"},
+        "title": {"type": "string"},
+        "short_description": {"type": "string"},
+        "long_description": {"type": "string"},
+        "organization": {"type": "string"},
+        "image": {"type": "string"},
+        "admin_id": {"type": "number"},
+        "slack": {"type": "string"},
     },
     "required": ["id"]
 }
@@ -74,7 +74,7 @@ post_PUT_schema = {
 DELETE_schema = {
     "type": "object",
     "properties": {
-        "id": {"type": "number"}
+        "id": {"type": "number"},
     },
     "required": ["id"]
 }
@@ -98,8 +98,8 @@ def check_user_id(user_id):
         data = json.dumps({"message": message})
         return Response(data, 404, mimetype="application/json")
 
-@app.route("api/posts", methods=["GET"])
-@app.route("api/users/<int:user_id>/posts", methods=["GET"])
+@app.route("/api/posts", methods=["GET"])
+@app.route("/api/users/<int:user_id>/posts", methods=["GET"])
 @decorators.accept("application/json")
 def posts_get(user_id=None):
     """ Returns a list of posts """
@@ -119,7 +119,7 @@ def posts_get(user_id=None):
         default=json_serial)
     return Response(data, 200, mimetype="application/json")
 
-@app.route("api/posts/<int:post_id>" methods=["GET"])
+@app.route("/api/posts/<int:post_id>", methods=["GET"])
 @decorators.accept("application/json")
 def post_get(post_id):
     """ Returns a specific post """
@@ -195,7 +195,8 @@ def users_post():
         data = {"message": error.message}
         return Response(json.dumps(data), 422, mimetype="application/json")
 
-    user = models.User.filter(models.User.email == data["email"]).first()
+    user = session.query(models.User).filter(
+        models.User.email == data["email"]).first()
     if user:
         message = "User with email {} already exists.".format(user.email)
         data = json.dumps({"message": message})
@@ -263,7 +264,8 @@ def user_put():
     user = session.query(models.User).get(data["id"])
 
     if data["email"] != user.email:
-        user_verify = models.Users.filter(model.Users.email == data["email"]).first()
+        user_verify = session.query(models.Users).filter(
+            model.Users.email == data["email"]).first()
         if user_verify:
             message = "User with email {} already exists.".format(
                 duplicate_user.id)

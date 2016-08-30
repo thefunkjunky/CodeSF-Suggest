@@ -1,7 +1,10 @@
 import json
 import urllib
+import sys
+import os
 
 class DevelopmentConfig(object):
+    print(os.getcwd())
     try:
         with open("main_config_variables.json", 'r') as cfg_file:
             cfg_params = json.load(cfg_file)
@@ -10,12 +13,22 @@ class DevelopmentConfig(object):
         print("Exception: {}".format(e))
         sys.exit()
 
-    DATABASE_URI = "postgresql://{}:{}@{}:{}/{}".format(
+    if os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/'):
+            DATABASE_URI = "mysql://{}:{}@localhost/{}?unix_socket=/cloudsql/{}:{}".format(
+                cfg_params["user"],
+                cfg_params['password'], # Encodes weird passwords with spaces and whatnot for urls
+                cfg_params['dbname'],
+                cfg_params["cloudsql_project"],
+                cfg_params["cloudsql_instance"])
+    else:
+        DATABASE_URI = "mysql://{}:{}@{}:{}/{}".format(
         cfg_params['user'],
-        urllib.parse.quote(cfg_params['password']), # Encodes weird passwords with spaces and whatnot for urls
+        cfg_params['password'], # Encodes weird passwords with spaces and whatnot for urls
         cfg_params['host'],
         cfg_params['port'],
         cfg_params['dbname'])
+                
+    print(DATABASE_URI)
 
     SECRET_KEY = cfg_params['secret_key']
     SERVER_IP = cfg_params['host']
@@ -31,9 +44,17 @@ class TestingConfig(object):
         print("Exception: {}".format(e))
         sys.exit()
 
-    DATABASE_URI = "postgresql://{}:{}@{}:{}/{}".format(
+    if os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/'):
+        DATABASE_URI = "mysql://{}:{}@localhost/{}?unix_socket=/cloudsql/{}:{}".format(
+            cfg_params["user"],
+            cfg_params['password'], # Encodes weird passwords with spaces and whatnot for urls
+            cfg_params['dbname'],
+            cfg_params["cloudsql_project"],
+            cfg_params["cloudsql_instance"])
+    else:
+        DATABASE_URI = "mysql://{}:{}@{}:{}/{}".format(
         cfg_params['user'],
-        urllib.parse.quote(cfg_params['password']), # Encodes weird passwords with spaces and whatnot for urls
+        cfg_params['password'], # Encodes weird passwords with spaces and whatnot for urls
         cfg_params['host'],
         cfg_params['port'],
         cfg_params['dbname'])
